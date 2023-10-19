@@ -1,0 +1,11 @@
+[package]
+name = "star_wars"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "0.11.3"
+bevy-inspector-egui = "0.20.0"
+rand = "0.8.5"

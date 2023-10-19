@@ -1,0 +1,11 @@
+Model Information:
+* title:	Desert Cliff 6
+* source:	https://sketchfab.com/3d-models/desert-cliff-6-ed2e9c7e976e4768868481e4a5c63f6f
+* author:	WireframeArt (https://sketchfab.com/WireframeArt)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Desert Cliff 6" (https://sketchfab.com/3d-models/desert-cliff-6-ed2e9c7e976e4768868481e4a5c63f6f) by WireframeArt (https://sketchfab.com/WireframeArt) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
