@@ -1,10 +1,9 @@
 use bevy::{
     math::vec3,
     prelude::*,
-    reflect::TypeUuid,
     render::{
-        render_resource::{AddressMode, AsBindGroup, SamplerDescriptor, ShaderRef},
-        texture::ImageSampler,
+        render_resource::{AsBindGroup, ShaderRef},
+        texture::{ImageAddressMode, ImageSampler, ImageSamplerDescriptor},
     },
 };
 
@@ -22,9 +21,14 @@ pub struct LandscapePlugin;
 impl Plugin for LandscapePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup)
-            .add_systems(Update, update_time_uniform)
-            .add_systems(Update, set_textures_repeating)
-            .add_systems(Update, move_with_landscape)
+            .add_systems(
+                Update,
+                (
+                    update_time_uniform,
+                    set_textures_repeating,
+                    move_with_landscape,
+                ),
+            )
             .add_plugins(MaterialPlugin::<LandscapeMaterial>::default());
     }
 }
@@ -50,15 +54,15 @@ fn set_textures_repeating(
     mut texture_events: EventReader<AssetEvent<Image>>,
     mut textures: ResMut<Assets<Image>>,
 ) {
-    for event in texture_events.iter() {
+    for event in texture_events.read() {
         match event {
-            AssetEvent::Created { handle } => {
-                let Some(texture) = textures.get_mut(handle) else {
+            AssetEvent::Added { id } => {
+                let Some(texture) = textures.get_mut(*id) else {
                     continue;
                 };
-                texture.sampler_descriptor = ImageSampler::Descriptor(SamplerDescriptor {
-                    address_mode_u: AddressMode::Repeat,
-                    address_mode_v: AddressMode::Repeat,
+                texture.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
+                    address_mode_u: ImageAddressMode::Repeat,
+                    address_mode_v: ImageAddressMode::Repeat,
                     ..default()
                 });
             }
@@ -102,9 +106,7 @@ pub fn update_time_uniform(mut materials: ResMut<Assets<LandscapeMaterial>>, tim
     }
 }
 
-// This is the struct that will be passed to your shader
-#[derive(Reflect, AsBindGroup, TypeUuid, Debug, Clone)]
-#[uuid = "f690fdae-d598-45ab-8225-97e2a3f056e0"]
+#[derive(Reflect, Asset, AsBindGroup, Debug, Clone)]
 pub struct LandscapeMaterial {
     #[uniform(0)]
     time: f32,

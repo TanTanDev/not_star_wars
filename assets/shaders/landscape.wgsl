@@ -1,12 +1,14 @@
 #import bevy_pbr::mesh_functions as mesh_functions
-#import bevy_pbr::mesh_bindings       mesh, globals
-#import bevy_pbr::mesh_vertex_output  MeshVertexOutput
+#import bevy_pbr::mesh_bindings::{mesh, globals}
+#import bevy_pbr::forward_io::VertexOutput
 #import bevy_pbr::pbr_functions as pbr_functions
 #import bevy_pbr::pbr_bindings as pbr_bindings
 #import bevy_pbr::pbr_types as pbr_types
-#import bevy_pbr::mesh_view_bindings       view, fog, screen_space_ambient_occlusion_texture
-#import bevy_pbr::mesh_view_types          FOG_MODE_OFF
-#import bevy_core_pipeline::tonemapping    screen_space_dither, powsafe, tone_mapping
+#import bevy_pbr::mesh_view_bindings::{view, fog, screen_space_ambient_occlusion_texture}
+#import bevy_pbr::mesh_view_types::FOG_MODE_OFF
+#import bevy_pbr::view_transformations as view_transformations
+
+#import bevy_core_pipeline::tonemapping::{screen_space_dither, powsafe, tone_mapping}
 
 struct LandscapeMaterial {
     time: f32,
@@ -25,33 +27,35 @@ var color_texture: texture_2d<f32>;
 var color_sampler: sampler;
 
 struct Vertex {
+    @builtin(instance_index) instance_index: u32,
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
     @location(2) uv: vec2<f32>,
 };
 
 @vertex
-fn vertex(vertex: Vertex) -> MeshVertexOutput {
-    var vertex = vertex;
-    var out: MeshVertexOutput;
-    var model = mesh.model;
+fn vertex(vertex: Vertex) -> VertexOutput {
+    var new_vertex: Vertex = vertex;
+    var out: VertexOutput;
+    var model = mesh_functions::get_model_matrix(new_vertex.instance_index);
 
     let moving_offset = vec2<f32>(0.0, material.time * material.speed);
-    let noise = simplexNoise2((vertex.position.xz + moving_offset) * material.terrain_size * 0.01) * 0.5 + 0.5;
-    vertex.position.y += noise * material.terrain_height;
+    let noise = simplexNoise2((new_vertex.position.xz + moving_offset) * material.terrain_size * 0.01) * 0.5 + 0.5;
+    new_vertex.position.y += noise * material.terrain_height;
 
-    out.world_position = mesh_functions::mesh_position_local_to_world(model, vec4<f32>(vertex.position, 1.0));
-    out.position = mesh_functions::mesh_position_world_to_clip(out.world_position);
-    out.world_normal = mesh_functions::mesh_normal_local_to_world(vertex.normal);
-    out.uv = vertex.uv;
+    out.world_position = mesh_functions::mesh_position_local_to_world(model, vec4<f32>(new_vertex.position, 1.0));
+
+    out.position = view_transformations::position_world_to_clip(out.world_position.xyz);
+    out.world_normal = mesh_functions::mesh_normal_local_to_world(new_vertex.normal, new_vertex.instance_index);
+    out.uv = new_vertex.uv;
 
     return out;
 }
 
 @fragment
-fn fragment(in: MeshVertexOutput) -> @location(0) vec4<f32> {
-    var output_color: vec4<f32> = vec4<f32>(0.0,1.0,0.0, 1.0);
-    var pbr_input = pbr_functions::pbr_input_new();
+fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
+    var output_color: vec4<f32> = vec4<f32>(0.0, 1.0, 0.0, 1.0);
+    var pbr_input = pbr_types::pbr_input_new();
     pbr_input.world_position = in.world_position;
     pbr_input.world_normal = in.world_normal;
     pbr_input.frag_coord = in.position;
@@ -64,7 +68,7 @@ fn fragment(in: MeshVertexOutput) -> @location(0) vec4<f32> {
     let moving_offset = vec2<f32>(0.0, material.time * material.speed);
     pbr_input.material.base_color = textureSample(color_texture, color_sampler, (in.uv + moving_offset * (1.0 / material.quad_size)) * material.uv_scaling);
 
-    output_color = pbr_functions::pbr(pbr_input);
+    output_color = pbr_functions::apply_pbr_lighting(pbr_input);
     output_color = pbr_functions::apply_fog(fog, output_color, in.world_position.xyz, view.world_position.xyz);
     return output_color;
 }
