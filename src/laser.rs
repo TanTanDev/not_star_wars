@@ -89,6 +89,7 @@ pub fn shoot_guns(
                     volume: Volume::new_absolute(volume),
                     speed,
                     paused: false,
+                    ..default()
                 },
             },
             Laser { velocity },

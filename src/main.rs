@@ -175,11 +175,11 @@ pub fn camera_input(
     time: Res<Time>,
 ) {
     for (mut controller, mut transform) in query.iter_mut() {
-        for wheel in mouse_wheel.iter() {
+        for wheel in mouse_wheel.read() {
             controller.zoom += wheel.y;
         }
         if buttons.pressed(MouseButton::Right) {
-            for mouse in mouse_motion.iter() {
+            for mouse in mouse_motion.read() {
                 let delta = mouse.delta * time.delta_seconds() * 0.3;
                 controller.rotation *= Quat::from_euler(EulerRot::XYZ, -delta.y, -delta.x, 0.0);
             }
