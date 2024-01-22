@@ -21,9 +21,14 @@ pub struct LandscapePlugin;
 impl Plugin for LandscapePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup)
-            .add_systems(Update, update_time_uniform)
-            .add_systems(Update, set_textures_repeating)
-            .add_systems(Update, move_with_landscape)
+            .add_systems(
+                Update,
+                (
+                    update_time_uniform,
+                    set_textures_repeating,
+                    move_with_landscape,
+                ),
+            )
             .add_plugins(MaterialPlugin::<LandscapeMaterial>::default());
     }
 }

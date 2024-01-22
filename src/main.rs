@@ -24,11 +24,16 @@ fn main() {
         .add_plugins(LandscapePlugin)
         .add_plugins(LaserPlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, animate_light_direction)
-        .add_systems(Update, start_walker_animation)
-        .add_systems(Update, spawn_objects)
-        .add_systems(Update, camera_input)
-        .add_systems(Update, move_plane)
+        .add_systems(
+            Update,
+            (
+                animate_light_direction,
+                start_walker_animation,
+                spawn_objects,
+                camera_input,
+                move_plane,
+            ),
+        )
         .run();
 }
 
